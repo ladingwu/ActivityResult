@@ -28,8 +28,11 @@ class MainActivity : AppCompatActivity() {
 
                 
                 var resultStr = result.intent?.getStringExtra("key_back")
-                if (resultStr != null) {
-                    tv.text = resultStr+" req:  "+result.requestCode+" resultCode: "+result.resultCode
+                if (result.isOk() && resultStr != null) {
+                    tv.text = "is ok  "+ resultStr+" req:  "+result.requestCode+" resultCode: "+result.resultCode
+                }
+                if (result.isCanceled()){
+                    tv.text = "is canceled "
                 }
             }
         }

@@ -20,8 +20,11 @@ class ActivityResult(var activity:FragmentActivity) :IActivityResult{
     private var reference:WeakReference<Activity>? = null
     private var curResultCallback:((data:IntentResult)->Unit)? = null
     private var curFailCllback:(()->Unit)? = null
+    private var job :Job? = null
+    private var curRequestCode = Int.MAX_VALUE
 
     private fun startActivity(intent: Intent,requestCode: Int,dataCallback:IActivityResult):Fragment?{
+        curRequestCode = requestCode
         var manager = activity.supportFragmentManager
         var fragment = activity.supportFragmentManager.findFragmentByTag(FRAGMENT_TAG)
         if (fragment!=null){
@@ -31,6 +34,7 @@ class ActivityResult(var activity:FragmentActivity) :IActivityResult{
             fragment?.dataCallback = dataCallback
             manager.beginTransaction().add(fragment,FRAGMENT_TAG).commitAllowingStateLoss()
         }
+        (fragment as? HolderFragment)?.tryStartActivityForResult(intent,requestCode = requestCode)
         return fragment
     }
 
@@ -38,14 +42,12 @@ class ActivityResult(var activity:FragmentActivity) :IActivityResult{
     fun startActivityforResultBack(intent: Intent,requestCode: Int,resultCallback:((data:IntentResult)->Unit),failCallback:(()->Unit)? = null){
         this.curResultCallback = resultCallback
         this.curFailCllback = failCallback
-        var fragment = startActivity(intent, requestCode,this)
-        (fragment as? HolderFragment)?.tryStartActivityForResult(intent,requestCode = requestCode)
+        startActivity(intent, requestCode,this)
     }
 
 
     fun startActivityforResultBack(intent: Intent,requestCode: Int,resultCallback:IActivityResult){
-        var fragment = startActivity(intent, requestCode,resultCallback)
-        (fragment as? HolderFragment)?.tryStartActivityForResult(intent,requestCode = requestCode)
+        startActivity(intent, requestCode,resultCallback)
     }
 
     override fun onDataBack(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -56,14 +58,18 @@ class ActivityResult(var activity:FragmentActivity) :IActivityResult{
         curFailCllback?.invoke()
     }
 
-    suspend fun startActivityWaitResult(intent: Intent,requestCode: Int) = suspendCoroutine<IntentResult>{coroutinue->
+    suspend fun startActivityWaitResult(intent: Intent,requestCode: Int) = suspendCancellableCoroutine<IntentResult>{coroutinue->
        startActivityforResultBack(intent,requestCode,object :IActivityResult{
            override fun onDataBack(requestCode: Int, resultCode: Int, data: Intent?) {
-               coroutinue.resume(IntentResult(data,requestCode,resultCode))
+               if (coroutinue.isActive){
+                   coroutinue.resume(IntentResult(data,requestCode,resultCode))
+               }
            }
 
            override fun onFail(e:Throwable) {
-                coroutinue.resumeWithException(e)
+               if (coroutinue.isActive) {
+                   coroutinue.resumeWithException(e)
+               }
            }
        })
     }
