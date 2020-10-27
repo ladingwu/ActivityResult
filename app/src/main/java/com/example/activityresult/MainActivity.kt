@@ -7,6 +7,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import com.example.activityresult.R
+import com.example.activityresultlib.startActivityForResultBack
 import com.example.activityresultlib.startActivityWaitResult
 import kotlinx.android.synthetic.main.activity_main.*
 import java.lang.reflect.InvocationHandler
@@ -22,19 +23,39 @@ class MainActivity : AppCompatActivity() {
         tv.setOnClickListener {
             lifecycleScope.launchWhenCreated{
                 var intent = Intent(this@MainActivity,NextActivity::class.java)
-                intent.putExtra("key","send message")
+                intent.putExtra("key",edit.text.toString())
 
                 var result = this@MainActivity.startActivityWaitResult(intent,1001)
 
                 
                 var resultStr = result.intent?.getStringExtra("key_back")
                 if (result.isOk() && resultStr != null) {
-                    tv.text = "is ok  "+ resultStr+" req:  "+result.requestCode+" resultCode: "+result.resultCode
+                    tv.text = "is ok  \n"+ resultStr+"\n req:  "+result.requestCode+" resultCode: "+result.resultCode
                 }
                 if (result.isCanceled()){
                     tv.text = "is canceled "
                 }
             }
+        }
+
+        tv2.setOnClickListener {
+
+            var intent = Intent(this@MainActivity,NextActivity::class.java)
+
+            intent.putExtra("key",edit.text.toString())
+
+            this@MainActivity.startActivityForResultBack(intent,1001){result->
+
+                var resultStr = result.intent?.getStringExtra("key_back")
+                if (result.isOk() && resultStr != null) {
+                    tv2.text = "is ok  \n"+ resultStr+"\n req:  "+result.requestCode+" resultCode: "+result.resultCode
+                }
+                if (result.isCanceled()){
+                    tv2.text = "is canceled "
+                }
+            }
+
+
         }
     }
 
