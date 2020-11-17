@@ -4,15 +4,12 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import com.example.activityresult.R
+import com.example.activityresultlib.setViewOnclickAndLaunch
 import com.example.activityresultlib.startActivityForResultBack
 import com.example.activityresultlib.startActivityWaitResult
 import kotlinx.android.synthetic.main.activity_main.*
-import java.lang.reflect.InvocationHandler
-import java.lang.reflect.Method
-import java.lang.reflect.Proxy
 
 class MainActivity : AppCompatActivity() {
 
@@ -20,24 +17,39 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        tv.setOnClickListener {
-            lifecycleScope.launchWhenCreated{
-                var intent = Intent(this@MainActivity,NextActivity::class.java)
-                intent.putExtra("key",edit.text.toString())
+//        tv.setOnClickListener {
+//            lifecycleScope.launchWhenCreated{
+//                var intent = Intent(this@MainActivity,NextActivity::class.java)
+//                intent.putExtra("key",edit.text.toString())
+//
+//                var result = this@MainActivity.startActivityWaitResult(intent,1001)
+//
+//
+//                var resultStr = result.intent?.getStringExtra("key_back")
+//                if (result.isOk() && resultStr != null) {
+//                    tv.text = "is ok  \n"+ resultStr+"\n req:  "+result.requestCode+" resultCode: "+result.resultCode
+//                }
+//                if (result.isCanceled()){
+//                    tv.text = "is canceled "
+//                }
+//            }
+//        }
 
-                var result = this@MainActivity.startActivityWaitResult(intent,1001)
+        lifecycleScope.setViewOnclickAndLaunch(tv){
+            var intent = Intent(this@MainActivity,NextActivity::class.java)
+            intent.putExtra("key",edit.text.toString())
 
-                
-                var resultStr = result.intent?.getStringExtra("key_back")
-                if (result.isOk() && resultStr != null) {
-                    tv.text = "is ok  \n"+ resultStr+"\n req:  "+result.requestCode+" resultCode: "+result.resultCode
-                }
-                if (result.isCanceled()){
-                    tv.text = "is canceled "
-                }
+            var result = this@MainActivity.startActivityWaitResult(intent,1001)
+
+
+            var resultStr = result.intent?.getStringExtra("key_back")
+            if (result.isOk() && resultStr != null) {
+                tv.text = "is ok  \n"+ resultStr+"\n req:  "+result.requestCode+" resultCode: "+result.resultCode
+            }
+            if (result.isCanceled()){
+                tv.text = "is canceled "
             }
         }
-
         tv2.setOnClickListener {
 
             var intent = Intent(this@MainActivity,NextActivity::class.java)
